@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RVND₹A — Music Producer • Beat Composer</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"></script>
+<style>
+:root{--ink:#070b09;--bone:#ece8df;--accent:#7C3AED;--accent-2:#5B21B6;--accent-text:#A78BFA;--mute:#7d857f;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--ink);color:var(--bone);font-family:'Space Grotesk',system-ui,sans-serif;overflow-x:hidden;animation:pg .9s ease both}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--ink);z-index:60}
+@keyframes pg{from{opacity:0}}
+.d{font-family:Anton,Impact,'Arial Narrow',sans-serif;text-transform:uppercase;line-height:.9;letter-spacing:-.005em;margin:0;font-weight:400}
+.l{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.rv{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.ln{display:block;overflow:hidden;padding:.05em 0}
+.ln>span{display:block;transform:translateY(108%);transition:transform 1s cubic-bezier(.2,.7,.2,1)}
+.in .ln>span{transform:none}
+.out{color:transparent;-webkit-text-stroke:1.5px var(--bone)}
+@keyframes mq{to{transform:translateX(-50%)}}
+.mq{display:flex;width:max-content;animation:mq 34s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.spin{animation:sp 50s linear infinite}
+@keyframes eq{0%,100%{height:20%}50%{height:100%}}
+.eq{display:flex;gap:2px;align-items:flex-end;height:14px}
+.eq i{width:3px;background:var(--accent);animation:eq .8s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.2s}.eq i:nth-child(3){animation-delay:.4s}
+.cv svg{transition:transform .9s cubic-bezier(.2,.7,.2,1),filter .6s}
+.card:hover .cv svg{transform:scale(1.06)}
+input[type=range]{accent-color:var(--accent);height:4px;cursor:pointer}
+::selection{background:var(--accent-2);color:var(--bone)}
+a,button{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.rv,.ln>span{opacity:1;transform:none}}
+</style>
+<script>tailwind.config={theme:{extend:{colors:{ink:'#070b09',bone:'#ece8df',accent:'var(--accent)',accent2:'var(--accent-2)',accentText:'var(--accent-text)',mute:'#7d857f'}}}}</script>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const {useState,useEffect,useRef}=React;
+const html=htm.bind(React.createElement);
+
+/* ============ EDIT ME: all site content lives here ============ */
+const CONFIG={
+  name:'RVND₹A',
+  email:'beatsbyrvndra@gmail.com',
+  // Social links — replace the URLs
+  social:{Instagram:'https://instagram.com/whyyrvndra'},   // add YouTube / SoundCloud / Spotify here when you have them; they appear automatically
+  handle:'@whyyrvndra',                    // shown on the "Follow" button; the link is social.Instagram
+                         
+  aboutText:'Beats, textures and atmospheres built from scratch. The catalog is currently in progress — the sound is coming.',
+  // Beat store hook: called by every BUY / LICENSE button. Swap for Stripe / BeatStars / Shopify link.
+  buy:(beat)=>window.open('https://example.com/store/'+beat.slug,'_blank'),
+  // Contact form hook: opens an email to you with the inquiry filled in. Swap for Formspree / your API for in-page sending.
+  submit:async d=>{location.href='mailto:'+CONFIG.email+'?subject='+encodeURIComponent('Inquiry: '+(d.type||'General')+' — '+d.name)+'&body='+encodeURIComponent(d.message+'\n\nBudget: '+(d.budget||'—')+'\nFrom: '+d.name+' ('+d.email+')')}
+};
+/* ===== YOUR BEATS =====
+   Empty list → the site shows the "Coming soon" section.
+   Add an object per beat and the cards, catalog filters, buy buttons and audio player appear automatically.
+   { title:'After Dark', audioUrl:'/audio/after-dark.mp3', coverImage:'/img/after-dark.jpg',
+     genre:'Dark Trap', bpm:142, key:'F# min', price:29, category:'Trap' }
+   category = which catalog filter it sits under (falls back to genre). coverImage is optional (artwork placeholder is used). */
+const RAW=[
+];
+const BEATS=RAW.map(({title,audioUrl,coverImage,genre,bpm,key,price,category,year=new Date().getFullYear()},i)=>({i,name:title,src:audioUrl,cover:coverImage,genre,bpm,key,price,cat:category||genre,year,secs:0,slug:title.toLowerCase().replace(/ /g,'-')}));
+const FEATURED=BEATS.slice(0,5);
+const SERVICES=[
+ ['Beat Production','Original instrumentals tailored to artists and projects.','M3 12h2M7 6v12M11 3v18M15 8v8M19 10v4'],
+ ['Custom Beats','Exclusive production built around an artist\u2019s sound.','M4 8h16M4 16h16M9 5v6M15 13v6'],
+ ['Sound Design','Atmospheres, textures and unique sonic elements.','M3 12c3-8 6 8 9 0s6 8 9 0'],
+ ['Collaboration','Open to working with artists, producers and creatives.','M9 8a4 4 0 100 8 4 4 0 000-8zM15 8a4 4 0 100 8 4 4 0 000-8z']
+];
+/* ================================================================ */
+
+const fmt=s=>{s=Math.floor(s||0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const IC={play:'M7 4l13 8-13 8z',pause:'M6 4h4v16H6zM14 4h4v16h-4z',next:'M5 4l11 8-11 8zM18 4h2v16h-2z',prev:'M19 4L8 12l11 8zM4 4h2v16H4z',vol:'M3 9h4l5-4v14l-5-4H3zM16 8a5 5 0 010 8',menu:'M3 7h18M3 12h18M3 17h18',x:'M5 5l14 14M19 5L5 19',arrow:'M5 12h14M13 6l6 6-6 6',mail:'M3 6h18v12H3zM3 7l9 6 9-6',insta:'M7 3h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7a4 4 0 014-4zM12 8a4 4 0 100 8 4 4 0 000-8zM17.5 6.5h.01'};
+const Icon=({n,s=18,fill,sw=1.8})=>html`<svg width=${s} height=${s} viewBox="0 0 24 24" fill=${fill?'currentColor':'none'} stroke="currentColor" strokeWidth=${sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d=${IC[n]||n}/></svg>`;
+
+function useIn(th=.15){const r=useRef();useEffect(()=>{const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){e.target.classList.add('in');o.disconnect()}},{threshold:th});o.observe(r.current);return()=>o.disconnect()},[]);return r}
+const Rv=({c='',d=0,children})=>{const r=useIn();return html`<div ref=${r} className=${'rv '+c} style=${{transitionDelay:d+'ms'}}>${children}</div>`};
+const H=({t,c=''})=>{const r=useIn();return html`<h2 ref=${r} className=${'d '+c}>${t.split('\n').map((l,i)=>html`<span key=${i} className="ln"><span style=${{transitionDelay:i*110+'ms'}}>${l}</span></span>`)}</h2>`};
+const Label=({children,c=''})=>html`<span className=${'l '+c}>${children}</span>`;
+
+/* Placeholder artwork — swap for <img src=...> per beat */
+const BG=['#0c1511','#101110','#110c18','#09110f','#11160f'];
+const Cover=({i,soon})=>{const s=i%5;const src=!soon&&BEATS[i]&&BEATS[i].cover;if(src)return html`<img src=${src} alt="" className="block w-full h-full object-cover"/>`;const shapes=[
+ html`<circle cx="50" cy="56" r="27" fill="var(--accent)"/>`,
+ html`<g><g stroke="#ece8df" strokeWidth=".5" opacity=".7">${[...Array(14)].map((_,k)=>html`<line key=${k} x1="0" x2="100" y1=${k*7+4} y2=${k*7+4+(k%3)*3}/>`)}</g><rect x="60" width="6" height="100" fill="var(--accent)"/></g>`,
+ html`<g><rect x="-20" y="42" width="140" height="18" fill="var(--accent)" transform="rotate(-24 50 50)"/><rect x="-20" y="66" width="140" height="3" fill="#ece8df" transform="rotate(-24 50 50)"/></g>`,
+ html`<g fill="none" stroke="#ece8df" strokeWidth=".7"><circle cx="50" cy="50" r="12"/><circle cx="50" cy="50" r="22"/><circle cx="50" cy="50" r="33" stroke="var(--accent)" strokeWidth="3"/></g>`,
+ html`<g><g fill="#ece8df">${[...Array(36)].map((_,k)=>html`<circle key=${k} cx=${(k%6)*16+10} cy=${Math.floor(k/6)*16+10} r=${((k*7)%5)*.45+.6}/>`)}</g><rect x="64" y="64" width="22" height="22" fill="var(--accent)"/></g>`][s];
+ return html`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" className="block w-full h-full" role="img" aria-label="Placeholder cover artwork"><rect width="100" height="100" fill=${BG[s]}/>${shapes}</svg>`};
+
+const Eq=()=>html`<span className="eq" aria-label="Playing"><i/><i/><i/></span>`;
+const Btn=({children,href,onClick,solid,ext,c=''})=>html`<a href=${href} onClick=${onClick} target=${ext?'_blank':undefined} rel=${ext?'noopener noreferrer':undefined} className=${'inline-flex items-center justify-center gap-2 min-h-[48px] px-6 l transition-all duration-300 '+(solid?'bg-accent text-bone hover:bg-bone hover:text-ink':'border border-bone/40 hover:bg-bone hover:text-ink')+' '+c}>${children}</a>`;
+
+function Navbar(){
+  const [o,setO]=useState(false);
+  const links=[['Work','#work'],['Beats','#beats'],['About','#about'],['Contact','#contact']];
+  const close=()=>setO(false);
+  // Mobile menu: lock page scroll while open, close on Escape, auto-close if resized to desktop
+  useEffect(()=>{
+    if(!o)return;
+    const de=document.documentElement,prev=[de.style.overflow,document.body.style.overflow];
+    de.style.overflow=document.body.style.overflow='hidden';
+    const key=e=>{if(e.key==='Escape')close()},mq=matchMedia('(min-width:768px)'),rs=()=>{if(mq.matches)close()};
+    addEventListener('keydown',key);mq.addEventListener('change',rs);
+    return()=>{de.style.overflow=prev[0];document.body.style.overflow=prev[1];removeEventListener('keydown',key);mq.removeEventListener('change',rs)};
+  },[o]);
+  // close the menu, then scroll once the page is unlocked
+  const jump=h=>e=>{e.preventDefault();close();setTimeout(()=>{const t=document.querySelector(h);if(t)t.scrollIntoView()},60)};
+  return html`<${React.Fragment}>
+  <header className="sticky top-[env(safe-area-inset-top,0px)] z-50 bg-ink/90 backdrop-blur-sm border-b border-bone/10">
+    <div className="flex items-center justify-between px-5 md:px-10 h-16">
+      <a href="#top" className="d text-2xl tracking-wide">${CONFIG.name}</a>
+      <nav className="hidden md:flex gap-10">${links.map(([n,h])=>html`<a key=${n} href=${h} className="l text-bone/70 hover:text-accentText transition-colors">${n}</a>`)}</nav>
+      <div className="flex items-center gap-3">
+        <${Btn} href="#contact" solid c="hidden md:inline-flex !min-h-[40px] !px-4">Let's work<//>
+        <button className="md:hidden w-11 h-11 grid place-items-center" aria-label="Open menu" aria-expanded=${o} aria-controls="mobile-menu" onClick=${()=>setO(true)}><${Icon} n="menu" s=${24}/></button>
+      </div>
+    </div>
+  </header>
+  ${o&&html`<div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu" className="md:hidden fixed inset-0 z-[9999] bg-ink flex flex-col overflow-y-auto overscroll-contain pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
+    <div className="flex items-center justify-between h-16 px-5 shrink-0 border-b border-bone/10">
+      <a href="#top" onClick=${jump('#top')} className="d text-2xl tracking-wide">${CONFIG.name}</a>
+      <button autoFocus onClick=${close} aria-label="Close menu" className="w-11 h-11 grid place-items-center"><${Icon} n="x" s=${24}/></button>
+    </div>
+    <nav aria-label="Mobile" className="flex flex-col gap-1 px-5 py-6 shrink-0">${links.map(([n,h])=>html`<a key=${n} href=${h} onClick=${jump(h)} className="d block py-3 text-[15vw] min-[480px]:text-7xl border-b border-bone/10 hover:text-accentText transition-colors">${n}</a>`)}</nav>
+    <div className="mt-auto flex flex-col gap-5 px-5 pt-6 pb-8 shrink-0 border-t border-bone/10">
+      <${Reach}/>
+      <${Btn} href="#contact" solid onClick=${jump('#contact')}>Let's work<//>
+    </div>
+  </div>`}
+<//>`}
+
+const Marquee=({words,c=''})=>html`<div className=${'overflow-hidden py-3 '+c} aria-hidden="true"><div className="mq">${[0,1].map(k=>html`<div key=${k} className="flex shrink-0">${words.map((w,i)=>html`<span key=${i} className="d text-4xl md:text-6xl px-6 whitespace-nowrap">${w}<span className="px-6 opacity-60">✦</span></span>`)}</div>`)}</div></div>`;
+
+function Hero(){
+  const r=useIn(.01);
+  return html`<section id="top" ref=${r} className="relative min-h-[calc(100svh-4rem)] flex flex-col justify-between px-5 md:px-10 pt-10 pb-8 overflow-hidden">
+    <svg className="spin absolute -right-[25%] md:-right-[8%] top-[8%] w-[110vmin] md:w-[80vmin] opacity-25 pointer-events-none" viewBox="0 0 100 100" fill="none" stroke="#ece8df" strokeWidth=".15" aria-hidden="true">${[48,44,40,36,32,28,24].map(x=>html`<circle key=${x} cx="50" cy="50" r=${x}/>`)}<circle cx="50" cy="50" r="12" fill="var(--accent)" stroke="none"/><circle cx="50" cy="50" r="1.4" fill="#070b09" stroke="none"/></svg>
+    <${Label} c="text-accentText relative">RVND₹A — Music Producer<//>
+    <h1 className="d relative text-[min(30vw,25vh)] md:text-[min(21vw,27vh)] my-6">
+      ${['Beats','That','Speak.'].map((w,i)=>html`<span key=${w} className="ln" style=${{paddingLeft:i==1?'min(18vw,14rem)':0,color:i==2?'var(--accent)':'inherit'}}><span style=${{transitionDelay:i*140+'ms'}}>${w}</span></span>`)}
+    </h1>
+    <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+      <div className="flex flex-col sm:flex-row gap-3"><${Btn} href="#beats" solid>Beats — coming soon<//><${Btn} href="#contact">Work with me<//></div>
+      <p className="max-w-sm text-bone/75 leading-relaxed">Independent music producer and beat composer crafting dark, atmospheric and hard-hitting sounds.</p>
+    </div>
+    <div className="absolute left-1/2 bottom-3 hidden md:flex flex-col items-center gap-2 text-mute" aria-hidden="true"><${Label}>Scroll<//><div className="w-px h-8 bg-accent"/></div>
+  </section>`}
+
+function ProjectCard({b,i,cur,playing,play}){
+  const on=cur===b.i,lay=['md:col-span-7','md:col-span-5 md:mt-28','md:col-span-4','md:col-span-4 md:mt-14','md:col-span-4 md:mt-28'][i];
+  return html`<${Rv} c=${'card group '+lay} d=${(i%3)*90}>
+    <button onClick=${()=>play(b.i)} className="relative block w-full text-left" aria-label=${(on&&playing?'Pause ':'Play ')+b.name}>
+      <div className=${'cv overflow-hidden '+(i==0?'aspect-[5/4]':'aspect-square')}><${Cover} i=${b.i}/></div>
+      <span className=${'absolute right-4 bottom-4 w-14 h-14 grid place-items-center transition-all duration-300 '+(on?'bg-accent text-bone':'bg-bone text-ink md:translate-y-3 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100')}><${Icon} n=${on&&playing?'pause':'play'} s=${22} fill/></span>
+    </button>
+    <div className="flex items-start justify-between gap-4 mt-4">
+      <div><h3 className="d text-3xl md:text-4xl">${b.name}</h3><p className="l text-mute mt-2">${b.genre} • ${b.bpm} BPM • ${b.year}</p></div>
+      <div className="l text-mute flex items-center gap-2 pt-1">${on&&playing&&html`<${Eq}/>`}${b.secs?fmt(b.secs):''}</div>
+    </div>
+  <//>`}
+
+function Work(p){return html`<section id="work" className="px-5 md:px-10 pt-24 md:pt-40">
+  <div className="flex items-end justify-between mb-12 md:mb-20"><${H} t=${'Selected\nWork'} c="text-[22vw] md:text-[13vw]"/><${Label} c="text-mute hidden sm:block pb-2">(${FEATURED.length}) Releases<//></div>
+  <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-14">${FEATURED.map((b,i)=>html`<${ProjectCard} key=${b.i} b=${b} i=${i} ...${p}/>`)}</div>
+</section>`}
+
+function BeatRow({b,cur,playing,play}){
+  const on=cur===b.i;
+  return html`<div className=${'group grid grid-cols-[56px_1fr_auto] md:grid-cols-[64px_2fr_1.5fr_.6fr_.8fr_.6fr_auto_auto] items-center gap-x-4 gap-y-3 py-4 border-t border-bone/10 hover:bg-bone/[.03] transition-colors '+(on?'bg-bone/[.04]':'')}>
+    <button onClick=${()=>play(b.i)} className="relative w-14 h-14 md:w-16 md:h-16 overflow-hidden" aria-label=${(on&&playing?'Pause ':'Preview ')+b.name}><${Cover} i=${b.i}/><span className="absolute inset-0 grid place-items-center bg-ink/50 opacity-0 group-hover:opacity-100 transition-opacity" style=${on?{opacity:1}:null}><${Icon} n=${on&&playing?'pause':'play'} fill/></span></button>
+    <div><div className="d text-2xl md:text-3xl flex items-center gap-3">${b.name}${on&&playing&&html`<${Eq}/>`}</div><div className="l text-mute mt-1 md:hidden">${b.genre} • ${b.bpm} BPM • ${b.key}</div></div>
+    <span className="hidden md:block l text-bone/70">${b.genre}</span>
+    <span className="hidden md:block l text-bone/70">${b.bpm} BPM</span>
+    <span className="hidden md:block l text-bone/70">${b.key}</span>
+    <span className="d text-2xl text-right md:text-left">$${b.price}</span>
+    <button onClick=${()=>play(b.i)} className="hidden md:inline-flex l min-h-[44px] items-center px-4 border border-bone/30 hover:border-accent hover:text-accentText transition-colors">${on&&playing?'Pause':'Preview'}</button>
+    <button onClick=${()=>CONFIG.buy(b)} className="l col-span-3 md:col-span-1 min-h-[44px] px-4 bg-accent text-bone hover:bg-bone hover:text-ink transition-colors">Buy / License</button>
+  </div>`}
+
+function BeatCatalog(p){
+  const [f,setF]=useState('All'),[q,setQ]=useState('');
+  const list=BEATS.filter(b=>(f==='All'||b.cat===f)&&(b.name+b.genre+b.key).toLowerCase().includes(q.toLowerCase()));
+  return html`<section id="beats" className="px-5 md:px-10 pt-28 md:pt-44">
+    <${H} t=${'The\nCatalog'} c="text-[22vw] md:text-[13vw] mb-12"/>
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-6">
+      <div className="flex flex-wrap gap-2">${['All',...new Set(BEATS.map(b=>b.cat))].map(c=>html`<button key=${c} onClick=${()=>setF(c)} aria-pressed=${f===c} className=${'l min-h-[44px] px-4 border transition-colors '+(f===c?'bg-bone text-ink border-bone':'border-bone/25 hover:border-accent')}>${c}</button>`)}</div>
+      <input value=${q} onChange=${e=>setQ(e.target.value)} placeholder="Search beats, genre, key" aria-label="Search beats" className="l bg-transparent border-b border-bone/30 focus:border-accent outline-none py-3 w-full md:w-72 placeholder:text-mute"/>
+    </div>
+    <div>${list.length?list.map(b=>html`<${BeatRow} key=${b.i} b=${b} ...${p}/>`):html`<p className="l text-mute py-12 border-t border-bone/10">No beats match. Try another filter.</p>`}</div>
+  </section>`}
+
+const SOON=['Trap / Hip-Hop','Drill / Dark','Experimental','R&B / Melodic'];
+function ComingSoon(){
+  const lay=['md:col-span-5','md:col-span-7 md:mt-24','md:col-span-7','md:col-span-5 md:mt-24'];
+  return html`<section id="beats" className="px-5 md:px-10 pt-24 md:pt-40">
+    <span id="work"/>
+    <div className="grid md:grid-cols-12 gap-10 mb-14 md:mb-24 items-end">
+      <div className="md:col-span-8"><${H} t=${'The\nSound\nIs Coming.'} c="text-[17vw] md:text-[11vw]"/></div>
+      <${Rv} c="md:col-span-4"><p className="text-lg text-bone/80 leading-relaxed max-w-sm">I'm currently building my catalog. Original beats, instrumentals and production packs will be available here soon.</p>
+        <div className="l text-accentText mt-6 flex flex-col gap-2">${['Catalog in progress','New music in development','First drop — soon'].map(s=>html`<span key=${s} className="flex items-center gap-3"><i className="w-2 h-2 bg-accent animate-pulse"/>${s}</span>`)}</div><//>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-14">${SOON.map((g,i)=>html`<${Rv} key=${g} d=${(i%2)*100} c=${'card group '+lay[i]}>
+      <a href="#drop" className="block relative" aria-label=${g+' — coming soon'}>
+        <div className=${'cv overflow-hidden opacity-80 '+(i==0||i==3?'aspect-[4/5]':'aspect-[4/3]')}><${Cover} i=${i} soon/></div>
+        <span className="absolute left-0 top-0 bg-accent text-bone l px-3 py-2">Coming soon</span>
+      </a>
+      <div className="flex items-start justify-between gap-4 mt-4">
+        <div><h3 className="d text-3xl md:text-4xl">${g}</h3><p className="l text-mute mt-2">— BPM • — Key</p></div>
+        <a href="#drop" className="l text-bone/70 hover:text-accentText pt-1 whitespace-nowrap min-h-[44px]">Coming soon →</a>
+      </div><//>`)}</div>
+    <div id="drop" className="scroll-mt-24"><${Rv} c="mt-24 md:mt-36 border-y border-bone/15 py-12 md:py-16 grid md:grid-cols-12 gap-8 items-center">
+      <h3 className="d text-5xl md:text-7xl md:col-span-8">Want to hear the first drop?</h3>
+      <div className="md:col-span-4 md:justify-self-end"><${Btn} href=${CONFIG.social.Instagram} ext solid>Follow ${CONFIG.handle} <${Icon} n="arrow"/><//></div>
+    <//></div>
+  </section>`}
+function About(){
+  return html`<section id="about" className="mt-28 md:mt-44 border-y border-bone/10 px-5 md:px-10 py-16 md:py-28">
+    <${Label} c="text-accentText">RVND₹A / Producer<//>
+    <div className="mt-8 grid md:grid-cols-12 gap-x-8 gap-y-10 items-end">
+      <div className="md:col-span-8"><${H} t=${'I Make\nSound.'} c="text-[30vw] md:text-[19vw]"/></div>
+      <${Rv} c="md:col-span-4"><p className="text-lg text-bone/80 leading-relaxed max-w-sm mb-8">${CONFIG.aboutText}</p><${Btn} href="#beats" solid>Catalog in progress <${Icon} n="arrow"/><//><//>
+    </div>
+    <div className="mt-14 md:mt-20 grid sm:grid-cols-3 border-t border-bone/15">${['Beat Production','Sound Design','Artist Collabs'].map((t,i)=>html`<${Rv} key=${t} d=${i*90} c=${'py-5 sm:py-8 border-b sm:border-b-0 border-bone/15 '+(i?'sm:border-l sm:pl-8':'')}><span className="d text-3xl md:text-5xl">${t}</span><//>`)}</div>
+  </section>`}
+
+function Services(){
+  return html`<section className="px-5 md:px-10 pt-28 md:pt-44">
+    <${H} t=${'What I\nDo'} c="text-[22vw] md:text-[13vw] mb-12"/>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-l border-t border-bone/15">${SERVICES.map(([t,d,ic],i)=>html`<${Rv} key=${t} d=${i*90} c=${'group border-r border-b border-bone/15 p-6 md:p-8 min-h-[300px] flex flex-col justify-between transition-colors duration-500 hover:bg-accent2 hover:text-bone '+(i%2?'lg:pt-20':'')}>
+      <div className="flex justify-between"><${Icon} n=${ic} s=${34} sw=${1.4}/><${Label} c="text-mute group-hover:text-bone">${String(i+1).padStart(2,'0')}<//></div>
+      <div><h3 className="d text-4xl mb-3">${t}</h3><p className="text-bone/70 group-hover:text-bone/85">${d}</p></div><//>`)}</div>
+  </section>`}
+
+function Collab(){
+  return html`<section className="mt-28 md:mt-44 px-5 md:px-10 py-24 md:py-36 border-y border-bone/10 relative overflow-hidden">
+    <${H} t=${'Making\nSomething?'} c="out text-[20vw] md:text-[12vw]"/>
+    <div className="mt-12 md:ml-[40%] max-w-md">
+      <${Rv}><p className="text-2xl leading-snug mb-8">Have a sound in your head?<br/>Let's turn it into something real.</p><${Btn} href="#contact" solid>Start a project <${Icon} n="arrow"/><//><//>
+    </div>
+  </section>`}
+
+/* Single source of truth for contact details: used in Contact, Footer and the mobile menu (edit CONFIG above) */
+const Reach=({c='',big})=>html`<div className=${'flex flex-col '+c}>
+  <a href=${'mailto:'+CONFIG.email} className=${'flex items-center gap-3 min-h-[44px] hover:text-accentText transition-colors break-all '+(big?'d text-2xl md:text-3xl':'l')}><${Icon} n="mail" s=${big?26:18}/>${CONFIG.email}</a>
+  <a href=${CONFIG.social.Instagram} target="_blank" rel="noopener noreferrer" className=${'flex items-center gap-3 min-h-[44px] hover:text-accentText transition-colors '+(big?'d text-2xl md:text-3xl':'l')}><${Icon} n="insta" s=${big?26:18}/>${CONFIG.handle}</a>
+  ${Object.entries(CONFIG.social).filter(([n])=>n!=='Instagram').map(([n,u])=>html`<a key=${n} href=${u} target="_blank" rel="noopener noreferrer" className="l flex items-center gap-3 min-h-[44px] hover:text-accentText transition-colors">${n} ↗</a>`)}
+</div>`;
+function Contact(){
+  const [sent,setSent]=useState(false),[busy,setBusy]=useState(false);
+  const go=async e=>{e.preventDefault();setBusy(true);const d=Object.fromEntries(new FormData(e.target));try{await CONFIG.submit(d);setSent(true)}finally{setBusy(false)}};
+  const fc='w-full bg-transparent border-b border-bone/25 focus:border-accent outline-none py-3 text-lg placeholder:text-mute rounded-none';
+  return html`<section id="contact" className="px-5 md:px-10 pt-28 md:pt-44 pb-24">
+    <${H} t=${'Let\'s\nMake\nNoise.'} c="text-[26vw] md:text-[14vw] mb-14"/>
+    <div className="grid md:grid-cols-12 gap-12">
+      ${sent?html`<p className="md:col-span-7 d text-5xl text-accentText">Check your email app.<br/><span className="text-bone">Hit send to deliver your inquiry.</span></p>`
+      :html`<form onSubmit=${go} className="md:col-span-7 grid sm:grid-cols-2 gap-x-8 gap-y-6">
+        <input name="name" required placeholder="Name" aria-label="Name" className=${fc}/>
+        <input name="email" type="email" required placeholder="Email" aria-label="Email" className=${fc}/>
+        <select name="type" aria-label="Project type" className=${fc+' [&>option]:bg-[#070b09]'}>${['Project type','Custom beat','Beat licensing','Sound design','Collaboration','Other'].map(o=>html`<option key=${o} value=${o==='Project type'?'':o}>${o}</option>`)}</select>
+        <select name="budget" aria-label="Budget" className=${fc+' [&>option]:bg-[#070b09]'}>${['Budget','Under $200','$200 – $500','$500 – $1,500','$1,500+'].map(o=>html`<option key=${o} value=${o==='Budget'?'':o}>${o}</option>`)}</select>
+        <textarea name="message" required rows="4" placeholder="Tell me about the sound" aria-label="Message" className=${fc+' sm:col-span-2 resize-none'}/>
+        <button disabled=${busy} className="sm:col-span-2 l min-h-[56px] bg-accent text-bone hover:bg-bone hover:text-ink transition-colors flex items-center justify-center gap-2">${busy?'Sending…':'Send inquiry'} <${Icon} n="arrow"/></button>
+      </form>`}
+      <div className="md:col-span-4 md:col-start-9 flex flex-col gap-8">
+        <div><h3 className="d text-5xl">Work with me</h3><p className="text-bone/75 mt-3 mb-4 max-w-xs">For beats, production, collaborations or business inquiries:</p><${Reach} big/></div>
+      </div>
+    </div>
+  </section>`}
+
+function Footer({pad}){
+  return html`<footer className=${'border-t border-bone/10 '+(pad?'pb-28':'')}>
+    <${Marquee} words=${['Beats','Atmosphere','808s','Dark','Raw','Sound Design','Hard-Hitting']} c="text-bone/15"/>
+    <div className="px-5 md:px-10 py-10 flex flex-col md:flex-row justify-between gap-8 border-t border-bone/10">
+      <div><div className="d text-4xl">${CONFIG.name}</div><${Label} c="text-mute">Music Producer / Beat Composer<//></div>
+      <${Reach}/>
+    </div>
+    <p className="l text-mute px-5 md:px-10 pb-8">© 2026 RVND₹A. All rights reserved.</p>
+  </footer>`}
+
+function Player({cur,playing,setPlaying,go}){
+  const b=BEATS[cur],au=useRef(),[t,setT]=useState(0),[d,setD]=useState(b.secs),[vol,setVol]=useState(.8),[fail,setFail]=useState(false);
+  useEffect(()=>{setT(0);setD(b.secs);setFail(false)},[cur]);
+  useEffect(()=>{au.current.volume=vol},[vol]);
+  useEffect(()=>{const a=au.current;if(playing&&!fail)a.play().catch(()=>setFail(true));else a.pause()},[playing,cur,fail]);
+  useEffect(()=>{if(playing&&d>0&&t>=d-.3)go(1)},[t]);
+  const seek=v=>{setT(v);if(!fail)au.current.currentTime=v};
+  return html`<div className="fixed inset-x-0 bottom-0 z-50 bg-ink border-t border-accent pb-[env(safe-area-inset-bottom,0px)]">
+    <audio ref=${au} src=${b.src} preload="metadata" onTimeUpdate=${e=>!fail&&setT(e.target.currentTime)} onLoadedMetadata=${e=>setD(e.target.duration||b.secs)} onError=${()=>setFail(true)} onEnded=${()=>go(1)}/>
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 md:px-10 py-3">
+      <div className="w-12 h-12 shrink-0 overflow-hidden"><${Cover} i=${b.i}/></div>
+      <div className="min-w-0 flex-1 md:flex-none md:w-60"><div className="d text-xl truncate flex items-center gap-2">${b.name}${playing&&html`<${Eq}/>`}</div><div className="l text-mute truncate">${fail?'Audio file not found — check audioUrl':b.genre+' • '+b.bpm+' BPM'}</div></div>
+      <div className="flex items-center gap-1">
+        <button onClick=${()=>go(-1)} aria-label="Previous beat" className="w-11 h-11 grid place-items-center hover:text-accentText"><${Icon} n="prev" fill/></button>
+        <button onClick=${()=>setPlaying(!playing)} aria-label=${playing?'Pause':'Play'} className="w-12 h-12 grid place-items-center bg-accent text-bone hover:bg-bone hover:text-ink transition-colors"><${Icon} n=${playing?'pause':'play'} s=${20} fill/></button>
+        <button onClick=${()=>go(1)} aria-label="Next beat" className="w-11 h-11 grid place-items-center hover:text-accentText"><${Icon} n="next" fill/></button>
+      </div>
+      <div className="order-last md:order-none basis-full md:basis-0 md:flex-1 flex items-center gap-3"><span className="l text-mute w-10">${fmt(t)}</span><input type="range" min="0" max=${d} step="0.1" value=${t} onChange=${e=>seek(+e.target.value)} aria-label="Seek" className="flex-1"/><span className="l text-mute w-10 text-right">${fmt(d)}</span></div>
+      <div className="hidden lg:flex items-center gap-2 w-32"><${Icon} n="vol"/><input type="range" min="0" max="1" step="0.05" value=${vol} onChange=${e=>setVol(+e.target.value)} aria-label="Volume" className="w-full"/></div>
+    </div>
+  </div>`}
+
+function Cursor(){
+  const r=useRef();
+  useEffect(()=>{if(!matchMedia('(hover:hover) and (pointer:fine)').matches)return;const el=r.current;el.style.display='block';
+    const mv=e=>{el.style.transform=`translate(${e.clientX-16}px,${e.clientY-16}px)`;const hot=e.target.closest('a,button,input,select,textarea');el.style.width=el.style.height=hot?'48px':'32px';el.style.margin=hot?'-8px 0 0 -8px':'0'};
+    addEventListener('mousemove',mv);return()=>removeEventListener('mousemove',mv)},[]);
+  return html`<div ref=${r} aria-hidden="true" className="hidden fixed left-0 top-0 w-8 h-8 rounded-full border border-accent pointer-events-none z-[70] transition-[width,height,margin] duration-300 mix-blend-difference"/>`}
+
+function App(){
+  const [cur,setCur]=useState(-1),[playing,setPlaying]=useState(false);
+  const play=i=>{if(i===cur)setPlaying(p=>!p);else{setCur(i);setPlaying(true)}};
+  const go=n=>setCur(c=>(c+n+BEATS.length)%BEATS.length);
+  const p={cur,playing,play};
+  return html`<div className="overflow-x-clip">
+    <${Cursor}/><${Navbar}/>
+    <main><${Hero}/><${Marquee} words=${['Catalog in progress','New music in development','First drop — soon']} c="bg-accent text-bone"/>
+    ${BEATS.length?html`<${Work} ...${p}/><${BeatCatalog} ...${p}/>`:html`<${ComingSoon}/>`}<${About}/><${Services}/><${Collab}/><${Contact}/></main>
+    <${Footer} pad=${cur>=0}/>
+    ${cur>=0&&html`<${Player} cur=${cur} playing=${playing} setPlaying=${setPlaying} go=${go}/>`}
+  </div>`}
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+</script>
+</body>
+</html>
